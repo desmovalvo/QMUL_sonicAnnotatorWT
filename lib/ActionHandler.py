@@ -16,13 +16,13 @@ class ActionHandler:
         logging.debug("ActionHandler::__init__() invoked")
         
 
-    def handle(self, message):
+    def handle(self, added, removed):
 
         """This method is triggered every time a notification or a ping arrives"""
 
         # parse the message
-        logging.debug(message["ping"])
-        logging.debug(message)
+        logging.debug(added)
+        logging.debug(removed)
         
         # debug message
         logging.debug("ActionHandler::handle() invoked")
