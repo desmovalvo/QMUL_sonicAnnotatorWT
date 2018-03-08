@@ -2,10 +2,12 @@
 
 # config
 CONFIG_FILE = "annotator.jsap"
+SONIC_ANN = ["sonic-annotator", "-l"]
 
 # global reqs
 import time
 import logging
+import subprocess
 from sepy.JSAPObject import *
 
 # local reqs
@@ -30,7 +32,9 @@ if __name__ == "__main__":
     wt.addEvent("Ping")
 
     # 4 - specify actions
-    wt.addAction("KeyDetector")    
+    plugins = subprocess.check_output(SONIC_ANN)
+    for plugin in str(plugins).split("\\n"):
+        wt.addAction(plugin)    
     
     # 6 - start a ping generator thread
     wt.waitForActions(ActionHandler)
