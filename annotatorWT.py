@@ -32,7 +32,10 @@ if __name__ == "__main__":
     wt.addAction("KeyDetector")    
     
     # 6 - start a ping generator thread
+    wt.waitForActions()
+    
     # 7 - subscribe to action requests
+
     # 8 - wait, then destroy data
     input("Press <ENTER> to close the WebThing")
     logging.debug("Closing WebThing")

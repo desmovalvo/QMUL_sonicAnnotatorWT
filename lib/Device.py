@@ -6,6 +6,9 @@ from uuid import uuid4
 from sepy.JSAPObject import *
 from sepy.LowLevelKP import *
 
+# local reqs
+from lib.ActionHandler import *
+
 # the class
 class Device:
 
@@ -44,8 +47,9 @@ class Device:
         logging.debug("Device::__init__() -- Creating a new KP")
         self.kp = LowLevelKP(None, 10)
 
-        # save the update uri
+        # save the important URIs
         self.updateURI = self.jsap.updateUri
+        self.subscribeURI = self.jsap.subscribeUri
         
         # call TD_INIT
         u = self.jsap.getUpdate("ADD_NEW_THING", {
@@ -151,3 +155,14 @@ class Device:
         u = self.jsap.getUpdate("DELETE_THING", {
             "thing": self.thingURI })
         self.kp.update(self.updateURI, u)    
+
+
+    def waitForActions(self):
+
+        # get subscription
+        s = self.jsap.getQuery("GET_ACTION_REQUEST", {
+            "thing": self.thingURI})
+        
+        # subscribe
+        self.kp.subscribe(self.subscribeURI, s, "actions", ActionHandler)
+        
