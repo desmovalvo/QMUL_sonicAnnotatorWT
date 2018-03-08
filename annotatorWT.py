@@ -10,6 +10,7 @@ from sepy.JSAPObject import *
 
 # local reqs
 from lib.Device import *
+from lib.ActionHandler import *
 
 # main
 if __name__ == "__main__":
@@ -32,11 +33,15 @@ if __name__ == "__main__":
     wt.addAction("KeyDetector")    
     
     # 6 - start a ping generator thread
-    wt.waitForActions()
+    wt.waitForActions(ActionHandler)
     
     # 7 - subscribe to action requests
 
     # 8 - wait, then destroy data
-    input("Press <ENTER> to close the WebThing")
-    logging.debug("Closing WebThing")
-    wt.deleteWT()
+    try:
+        input("Press <ENTER> to close the WebThing")
+        logging.debug("Closing WebThing")
+        wt.deleteWT()
+    except KeyboardInterrupt:
+        logging.debug("Closing WebThing")
+        wt.deleteWT()

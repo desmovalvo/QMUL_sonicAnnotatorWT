@@ -6,9 +6,6 @@ from uuid import uuid4
 from sepy.JSAPObject import *
 from sepy.LowLevelKP import *
 
-# local reqs
-from lib.ActionHandler import *
-
 # the class
 class Device:
 
@@ -76,17 +73,17 @@ class Device:
 
         # generate an URI and store data
         if not actionURI:
-            self.actions[actionName] = str(uuid4())
+            self.actions[actionName] = self.defaultNS + str(uuid4())
         else:
             self.actions[actionName] = actionURI
         
         # generate and perform the update
         u = self.jsap.getUpdate("ADD_NEW_ACTION", {
             "thing": self.thingURI,
-            "action": "---",
-            "newName": "---",
-            "newInDataSchema": "---",
-            "newOutDataSchema": "---"
+            "action": self.actions[actionName],
+            "newName": actionName,
+            "newInDataSchema": "-",
+            "newOutDataSchema": "-"
         })
         self.kp.update(self.updateURI, u)
 
@@ -104,7 +101,7 @@ class Device:
         
         # generate an URI and store data
         if not eventURI:
-            self.events[eventName] = str(uuid4())
+            self.events[eventName] = self.defaultNS + str(uuid4())
         else:
             self.events[eventName] = eventURI
 
@@ -157,12 +154,15 @@ class Device:
         self.kp.update(self.updateURI, u)    
 
 
-    def waitForActions(self):
+    def waitForActions(self, handlerClass):
 
+        """This method is used to subscribe to all the actions request
+        for this Web Thing. The handler is the only parameter required"""
+        
         # get subscription
         s = self.jsap.getQuery("GET_ACTION_REQUEST", {
             "thing": self.thingURI})
         
         # subscribe
-        self.kp.subscribe(self.subscribeURI, s, "actions", ActionHandler)
+        self.kp.subscribe(self.subscribeURI, s, "actions", handlerClass(self.kp))
         
