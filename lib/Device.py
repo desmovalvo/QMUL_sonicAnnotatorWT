@@ -150,7 +150,8 @@ class Device:
         # delete thing
         logging.debug("Device::deleteWT() -- removing thing")
         u = self.jsap.getUpdate("DELETE_THING", {
-            "thing": self.thingURI })
+            "thing": self.thingURI,
+            "name": self.thingName })
         self.kp.update(self.updateURI, u)    
 
 
