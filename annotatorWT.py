@@ -4,6 +4,7 @@
 CONFIG_FILE = "annotator.jsap"
 
 # global reqs
+import time
 import logging
 from sepy.JSAPObject import *
 
@@ -28,8 +29,11 @@ if __name__ == "__main__":
     wt.addEvent("Ping")
 
     # 4 - specify actions
-    wt.addAction()    
+    wt.addAction("KeyDetector")    
     
     # 6 - start a ping generator thread
     # 7 - subscribe to action requests
     # 8 - wait, then destroy data
+    input("Press <ENTER> to close the WebThing")
+    logging.debug("Closing WebThing")
+    wt.deleteWT()
