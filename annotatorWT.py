@@ -36,7 +36,8 @@ if __name__ == "__main__":
     plugins = subprocess.check_output(SONIC_ANN)
     for plugin in vamp.list_plugins():
         wt.addAction(plugin)
-                
+        break
+    
     # 6 - start a ping generator thread
     wt.waitForActions(ActionHandler)
     
