@@ -6,6 +6,7 @@ SONIC_ANN = ["sonic-annotator", "-l"]
 
 # global reqs
 import time
+import vamp
 import logging
 import subprocess
 from sepy.JSAPObject import *
@@ -33,9 +34,9 @@ if __name__ == "__main__":
 
     # 4 - specify actions
     plugins = subprocess.check_output(SONIC_ANN)
-    for plugin in str(plugins).split("\\n"):
-        wt.addAction(plugin)    
-    
+    for plugin in vamp.list_plugins():
+        wt.addAction(plugin)
+                
     # 6 - start a ping generator thread
     wt.waitForActions(ActionHandler)
     

@@ -24,7 +24,7 @@ class Device:
 
         # read the jsap provided
         logging.debug("Device::__init__() -- Reading configuration file")
-        self.jsap = JSAPObject(jsap)
+        self.jsap = JSAPObject(jsap, 40)
 
         # setting a namespace
         self.defaultNS = "http://eecs.qmul.ac.uk/wot#"
