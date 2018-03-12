@@ -26,3 +26,5 @@ class ActionHandler:
         
         # debug message
         logging.debug("ActionHandler::handle() invoked")
+
+        # TODO retrieve input of that actions
