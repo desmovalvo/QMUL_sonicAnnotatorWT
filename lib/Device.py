@@ -165,5 +165,5 @@ class Device:
             "thing": self.thingURI})
         
         # subscribe
-        self.kp.subscribe(self.subscribeURI, s, "actions", handlerClass(self.kp))
+        self.kp.subscribe(self.subscribeURI, s, "actions", handlerClass(self.kp, self.jsap))
         
