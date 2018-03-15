@@ -27,15 +27,21 @@ if __name__ == "__main__":
     wt = Device(CONFIG_FILE, "SonicAnnotatorWT")
 
     # 2 - specify properties
-    wt.addProperty()
-
+    # NOTE: our thing must expose the list of plugins.
+    #       we do it through an rfd:Bag.. so to addProperty
+    #       we give the URI of a Bag. Then we fill it.
+    bagUri = wt.getRandomURI()
+    propUri = wt.getRandomURI()
+    wt.addProperty(True, "hasPlugin", bagUri, propUri, "rdf:Bag")
+    for plugin in vamp.list_plugins():
+        wt.addCustomStatement(" <%s> rdf:li '%s' " % (bagUri, plugin))
+    
     # 3 - specify events
     wt.addEvent("Ping")
 
     # 4 - specify actions
     plugins = subprocess.check_output(SONIC_ANN)
-    for plugin in vamp.list_plugins():
-        wt.addAction(plugin)
+    wt.addAction("sonicAnnotator")
     
     # 6 - start a ping generator thread
     wt.waitForActions(ActionHandler)

@@ -30,15 +30,18 @@ class Device:
         self.defaultNS = "http://eecs.qmul.ac.uk/wot#"
         
         # store things data
-        self.thingID = str(uuid4())
         self.thingName = thingName
-        self.thingURI = self.defaultNS + self.thingID
+        self.thingURI = self.getRandomURI()
+        self.thingID = self.thingURI.split("#")[1]
         
         # initialize an empty dictionary for events, props and actions
         # keys are represented by names, values are the related URIs
         self.events = {}
         self.actions = {}
         self.properties = {}
+
+        # initialize a list of the custom statements
+        self.statements = []
         
         # create a KP
         logging.debug("Device::__init__() -- Creating a new KP")
@@ -56,8 +59,42 @@ class Device:
         self.kp.update(self.updateURI, u)
 
         
-    def addProperty(self):
-        logging.error("Device::addProperty yet to implement!")
+    def addProperty(self, isUri, propertyName, propertyValue, propertyURI=None, dataschema="-", writable=True, stability=0):
+
+        """This method adds a new property to the thing"""
+
+        # debug message
+        logging.debug("Debug::addProperty() invoked")
+
+        # generate an URI and store data
+        if not propertyURI:
+            self.properties[propertyName] = self.getRandomURI()
+        else:
+            self.properties[propertyName] = propertyURI
+    
+        # add the property
+        u = None
+        if isUri:
+            u = self.jsap.getUpdate("ADD_URI_PROPERTY", {
+                "thing": self.thingURI,
+                "property": propertyURI,
+                "newName": propertyName,
+                "newStability": stability,
+                "newWritable": writable,
+                "newDataSchema": dataschema,
+                "newValue": propertyValue
+            })
+        else:
+            u = self.jsap.getUpdate("ADD_PROPERTY", {
+                "thing": self.thingURI,
+                "property": propertyURI,
+                "newName": propertyName,
+                "newStability": stability,
+                "newWritable": writable,
+                "newDataSchema": dataschema,
+                "newValue": propertyValue
+            })
+        self.kp.update(self.updateURI, u) 
 
         
     # add new action
@@ -73,7 +110,7 @@ class Device:
 
         # generate an URI and store data
         if not actionURI:
-            self.actions[actionName] = self.defaultNS + str(uuid4())
+            self.actions[actionName] = self.getRandomURI()
         else:
             self.actions[actionName] = actionURI
         
@@ -101,7 +138,7 @@ class Device:
         
         # generate an URI and store data
         if not eventURI:
-            self.events[eventName] = self.defaultNS + str(uuid4())
+            self.events[eventName] = self.getRandomURI()
         else:
             self.events[eventName] = eventURI
 
@@ -113,6 +150,19 @@ class Device:
             "outDataSchema": "-"
         })
         self.kp.update(self.updateURI, u)
+
+
+    def addCustomStatement(self, statement):
+
+        """This method is used to add custom statements not present
+        in the jsap file used by this class"""
+
+        # debug message
+        logging.debug("Device::addCustomStatement() invoked")
+
+        # store and do the update
+        self.statements.append(statement)
+        self.kp.update(self.updateURI, "INSERT DATA { %s }" % statement)
         
         
     def subscribeToAction(self):
@@ -128,7 +178,16 @@ class Device:
         # debug message
         logging.debug("Device::deleteWT() invoked")
         
-        # delete properties
+        # TODO -- delete properties
+        logging.debug("Device::deleteWT() -- removing all the properties")
+        for p in self.properties:
+            u = self.jsap.getUpdate("DELETE_PROPERTY", {
+                "thing": self.thingURI,
+                "property": self.properties[p]
+            })
+            print(u)
+            self.kp.update(self.updateURI, u)        
+        
         # delete actions
         logging.debug("Device::deleteWT() -- removing all the actions")
         for a in self.actions:
@@ -154,7 +213,12 @@ class Device:
             "name": self.thingName })
         self.kp.update(self.updateURI, u)    
 
+        # delete custom statements
+        logging.debug("Device::deleteWT() -- removing custom statements")
+        for statement in self.statements:
+            self.kp.update(self.updateURI, "DELETE DATA { %s }" % statement)
 
+        
     def waitForActions(self, handlerClass):
 
         """This method is used to subscribe to all the actions request
@@ -167,3 +231,13 @@ class Device:
         # subscribe
         self.kp.subscribe(self.subscribeURI, s, "actions", handlerClass(self.kp, self.jsap))
         
+
+    def getRandomURI(self):
+
+        """This method is used to create a random URI"""
+
+        # debug message
+        logging.debug("Device::getRandomURI() invoked")
+        
+        # return
+        return self.defaultNS + str(uuid4())
