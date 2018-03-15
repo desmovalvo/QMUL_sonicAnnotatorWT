@@ -43,8 +43,6 @@ class ActionHandler:
         # TODO -- the song is currently hardcoded, since it is just for a demo;
         #         we need to retrieve the song through the websocket
         actionInstance = None
-        actionName = None
-        actionUri = None
         transformUri = None
         songName = "/home/val/QMUL/code/songRepo/audio/Rein_-_Occidente.mp3"        
         
@@ -52,8 +50,6 @@ class ActionHandler:
         # TODO -- consider that we may receive multiple action requests with a notification
         #         but for the demo purposes it is not mandatory        
         for result in added:
-            actionURI = result["action"]["value"]
-            actionName = result["actionName"]["value"]
             actionInstance = result["instance"]["value"]
             if result["fieldName"]["value"] == "transformUri":
                 transformUri = result["fieldValue"]["value"]

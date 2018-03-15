@@ -41,13 +41,14 @@ if __name__ == "__main__":
 
     # 4 - specify actions
     plugins = subprocess.check_output(SONIC_ANN)
-    wt.addAction("sonicAnnotator")
+    wt.addAction("invokeSonicAnnotator")
     
     # 6 - start a ping generator thread
+    # TODO - at the moment we do not need keep-alive service
+
+    # 7 - subscribe to action requests
     wt.waitForActions(ActionHandler)
     
-    # 7 - subscribe to action requests
-
     # 8 - wait, then destroy data
     try:
         input("Press <ENTER> to close the WebThing")
