@@ -25,6 +25,7 @@
         "td": "http://wot.arces.unibo.it/ontology/web_of_things#",
         "xsd": "http://www.w3.org/2001/XMLSchema",
 	"qmul": "http://eecs.qmul.ac.uk/wot#",
+	"vamp": "http://purl.org/ontology/vamp/",
 	"ac": "http://audiocommons.org/ns/audiocommons#"
     },
     "updates": {
@@ -399,11 +400,29 @@
         }
     },
     "queries": {
+	"GET_TRANSFORM":{
+	    "sparql":"SELECT ?bsize ?ssize ?plugin ?output ?paramName ?paramValue WHERE { ?transform rdf:type vamp:Transform . ?transform vamp:block_size ?bsize . ?transform vamp:step_size ?ssize . ?transform vamp:plugin ?plugin . ?transform vamp:output ?output . OPTIONAL { ?transform vamp:parameter_binding ?pb . ?pb vamp:parameter ?p . ?p vamp:identifier ?paramName . ?pb vamp:value ?paramValue }}",
+	    "forcedBindings": {
+		"transform" : {
+		    "type": "uri",
+		    "value": ""
+		}
+	    }
+	},
+	"GET_TRANSFORM_CONSTRUCT":{
+	    "sparql":"CONSTRUCT { ?transform rdf:type vamp:Transform . ?transform vamp:block_size ?bsize . ?transform vamp:step_size ?ssize . ?transform vamp:plugin ?plugin . ?transform vamp:output ?output . ?transform vamp:parameter_binding ?pb . ?pb vamp:parameter ?p . ?p vamp:identifier ?paramName . ?pb vamp:value ?paramValue } WHERE { ?transform rdf:type vamp:Transform . ?transform vamp:block_size ?bsize . ?transform vamp:step_size ?ssize . ?transform vamp:plugin ?plugin . ?transform vamp:output ?output . OPTIONAL { ?transform vamp:parameter_binding ?pb . ?pb vamp:parameter ?p . ?p vamp:identifier ?paramName . ?pb vamp:value ?paramValue }}",
+	    "forcedBindings":{
+		"transform":{
+		    "type":"uri",
+		    "value":""
+		}
+	    }
+	},
         "ALL_DATASCHEMA_DISCOVERY": {
             "sparql": "SELECT ?item ?itemType ?dataSchema ?inputDS ?outputDS WHERE {OPTIONAL{?item wot:hasDataSchema ?dataSchema}. OPTIONAL{?item wot:hasInputDataSchema ?inputDS}. OPTIONAL{?item wot:hasOutputDataSchema ?outputDS}. ?item rdf:type ?itemType}"
         },
         "GET_ACTION_REQUEST": {
-            "sparql": "SELECT ?action ?actionName ?instance ?request ?inputData ?field ?fieldValue WHERE {?thing td:hasAction ?action . ?action td:hasName ?actionName . ?action wot:hasActionInstance ?instance.?instance wot:hasRequestTimeStamp ?request. ?instance rdf:type wot:ActionInstance . OPTIONAL {?instance wot:hasInputData ?inputData. OPTIONAL {?inputData wot:hasInputField ?field . ?field wot:hasValue ?fieldValue}}}",
+            "sparql": "SELECT ?action ?actionName ?instance ?request ?inputData ?field ?fieldName ?fieldValue WHERE {?thing td:hasAction ?action . ?action td:hasName ?actionName . ?action wot:hasActionInstance ?instance.?instance wot:hasRequestTimeStamp ?request. ?instance rdf:type wot:ActionInstance . OPTIONAL {?instance wot:hasInputData ?inputData. OPTIONAL {?inputData wot:hasInputField ?field . ?field wot:hasName ?fieldName . ?field wot:hasValue ?fieldValue}}}",
             "forcedBindings": {
                 "thing": {
                     "type": "uri",
