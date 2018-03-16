@@ -45,7 +45,7 @@ class Device:
         
         # create a KP
         logging.debug("Device::__init__() -- Creating a new KP")
-        self.kp = LowLevelKP(None, 10)
+        self.kp = LowLevelKP(None, 40)
 
         # save the important URIs
         self.updateURI = self.jsap.updateUri
@@ -178,14 +178,13 @@ class Device:
         # debug message
         logging.debug("Device::deleteWT() invoked")
         
-        # TODO -- delete properties
+        # delete properties
         logging.debug("Device::deleteWT() -- removing all the properties")
         for p in self.properties:
             u = self.jsap.getUpdate("DELETE_PROPERTY", {
                 "thing": self.thingURI,
                 "property": self.properties[p]
             })
-            print(u)
             self.kp.update(self.updateURI, u)        
         
         # delete actions

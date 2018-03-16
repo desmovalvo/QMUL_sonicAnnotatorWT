@@ -2,6 +2,7 @@
 
 # global reqs
 import os
+import uuid
 import vamp
 import numpy
 import logging
@@ -26,8 +27,9 @@ class ActionHandler:
 
         # working files and directories
         self.workDir = os.getcwd()
+        self.outFile = self.workDir + "/.n3"
         self.n3File = self.workDir + "/lib/transform.n3"
-        
+
         # store the kp and the jsap object
         self.jsap = jsap
         self.kp = kp
@@ -45,11 +47,9 @@ class ActionHandler:
         logging.debug("ActionHandler::handle() invoked")
 
         # we need to get all data related to the action , the song name and the transform
-        # TODO -- the song is currently hardcoded, since it is just for a demo;
-        #         we need to retrieve the song through the websocket
         actionInstance = None
         transformUri = None
-        songName = "/home/val/QMUL/code/songRepo/audio/Rein_-_Occidente.mp3"        
+        songName = None
         
         # iterate over added building
         # TODO -- consider that we may receive multiple action requests with a notification
@@ -63,23 +63,29 @@ class ActionHandler:
                 print(songName)
 
         # get the transform!
-        # TODO - transforms specify a plugin as an URI (e.g. http://vamp-plugins.org/rdf/plugins/vamp-example-plugins#amplitudefollower)
-        #        we need to find the correspondent plugin name.. It would be nice to have the existing datatype property plugin_name in
-        #        the RDF configuration file of the transform
-        # NOTE - we now use this query to build the n3 file to feed sonic-annotator
-        #        soon the code will be split into vampWT and sonicAnnotatorWT
         status, results =  self.kp.query(self.jsap.queryUri, self.jsap.getQuery("GET_TRANSFORM_CONSTRUCT", {"transform": transformUri}))
         getN3FromBindings(results["results"]["bindings"], self.n3File)
 
         # start the analysis
         logging.debug("ActionHandker::handle() -- performing analysis (workDir: %s)" % self.workDir)
-        subprocess.run(["sonic-annotator", "-t", self.n3File, songName, "-w", "rdf", "--rdf-basedir", self.workDir])        
+        subprocess.run(["sonic-annotator", "-t", self.n3File, songName, "-w", "rdf", "--rdf-basedir", self.workDir, "--rdf-force"])        
         logging.debug("ActionHandker::handle() -- writing results")        
 
+        # load the results into sepa by creating a new named graph
+        namedGraphUri = self.jsap.namespaces["qmul"] + str(uuid.uuid4())        
+        with open(self.outFile, "r") as f:
+            g = Graph()
+            result = g.parse(f, format="n3")
+            upd = getUpdateFromGraph(result, namedGraphUri)
+            self.kp.update(self.jsap.updateUri, upd)
+                        
         # write data into SEPA
-        # TODO -- at the moment I put something horrible.. need to fix
         print(self.jsap.getUpdate("ADD_COMPLETION_TIMESTAMP_WITH_OUTPUT", {
-            "instance":actionInstance,
-            "outputFieldValue": "WIP",
-            "outputFieldName":"output"
+            "instance": actionInstance,
+            "outputFieldValue": namedGraphUri,
+            "outputFieldName": "output"
         }))
+
+        # remove file
+        logging.debug("ActionHandker::handle() -- removing output file")
+        os.remove(self.outFile)

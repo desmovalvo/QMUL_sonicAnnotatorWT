@@ -42,3 +42,69 @@ def getN3FromBindings(bindings, filename):
 
     # write the n3 file
     g.serialize(destination=filename, format='n3')
+
+
+def getUpdateFromGraph(triples, graphUri = None):
+
+    """This function is used to create the list of triple
+    patterns to put into the SPARQL UPDATE request"""
+
+    # initialize a dict for bnodes
+    bnodes = {}
+
+    # initialize SPARQL Update
+    upd = "INSERT DATA { "
+    if graphUri:
+        upd += " GRAPH <%s> { " % graphUri
+    
+    for t in triples:
+
+        # subject
+        s = t[0]
+        if isinstance(s, URIRef):
+            upd += " <%s> " % str(s) 
+        elif isinstance(s, BNode):
+            if not str(s) in bnodes:
+                bnodes[str(s)] = "_:" + str(len(bnodes))
+            upd += " %s " % bnodes[str(s)]
+        else:
+            upd += " '%s' " % sanitize(str(s)) 
+        
+        # predicate
+        p = t[1]
+        if isinstance(p, URIRef):
+            upd += " <%s> " % str(p) 
+        elif isinstance(p, BNode):
+            if not str(p) in bnodes:
+                bnodes[str(p)] = "_:" + str(len(bnodes))
+            upd += " %s " % bnodes[str(p)]
+        
+        # object
+        o = t[2]
+        if isinstance(o, URIRef):
+            upd += " <%s> . " % str(o) 
+        elif isinstance(o, BNode):
+            if not str(o) in bnodes:
+                bnodes[str(o)] = "_:" + str(len(bnodes))
+            upd += " %s . " % bnodes[str(o)]
+        else:            
+            upd += " '%s' . " % sanitize(str(o))
+        
+    # finalize update
+    upd += " }"
+    if graphUri:
+        upd += " }"
+
+    # return
+    return upd
+
+
+def sanitize(s):
+
+    """This function is mainly used to sanitize literals before
+    insertion in a SPARQL UPDATE request"""
+
+    s = s.replace(":", str(hex(ord(":"))))
+    s = s.replace("'", str(hex(ord("'"))))
+    s = s.replace('"', str(hex(ord('"'))))
+    return s

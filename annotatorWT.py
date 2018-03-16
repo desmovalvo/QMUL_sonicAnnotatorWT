@@ -50,6 +50,7 @@ if __name__ == "__main__":
     wt.waitForActions(ActionHandler)
     
     # 8 - wait, then destroy data
+    logging.info("WebThing ready! Waiting for actions!")
     try:
         input("Press <ENTER> to close the WebThing")
         logging.debug("Closing WebThing")
