@@ -53,39 +53,42 @@ class ActionHandler:
         
         # iterate over added building
         # TODO -- consider that we may receive multiple action requests with a notification
-        #         but for the demo purposes it is not mandatory        
-        for result in added:
-            actionInstance = result["instance"]["value"]
-            if result["fieldName"]["value"] == "transformUri":
-                transformUri = result["fieldValue"]["value"]
-            if result["fieldName"]["value"] == "audio":
-                songName = result["fieldValue"]["value"]
-                print(songName)
-
-        # get the transform!
-        status, results =  self.kp.query(self.jsap.queryUri, self.jsap.getQuery("GET_TRANSFORM_CONSTRUCT", {"transform": transformUri}))
-        getN3FromBindings(results["results"]["bindings"], self.n3File)
-
-        # start the analysis
-        logging.debug("ActionHandker::handle() -- performing analysis (workDir: %s)" % self.workDir)
-        subprocess.run(["sonic-annotator", "-t", self.n3File, songName, "-w", "rdf", "--rdf-basedir", self.workDir, "--rdf-force"])        
-        logging.debug("ActionHandker::handle() -- writing results")        
-
-        # load the results into sepa by creating a new named graph
-        namedGraphUri = self.jsap.namespaces["qmul"] + str(uuid.uuid4())        
-        with open(self.outFile, "r") as f:
-            g = Graph()
-            result = g.parse(f, format="n3")
-            upd = getUpdateFromGraph(result, namedGraphUri)
-            self.kp.update(self.jsap.updateUri, upd)
-                        
-        # write data into SEPA
-        print(self.jsap.getUpdate("ADD_COMPLETION_TIMESTAMP_WITH_OUTPUT", {
-            "instance": actionInstance,
-            "outputFieldValue": namedGraphUri,
-            "outputFieldName": "output"
-        }))
-
-        # remove file
-        logging.debug("ActionHandker::handle() -- removing output file")
-        os.remove(self.outFile)
+        #         but for the demo purposes it is not mandatory
+        if len(added) > 0:
+            for result in added:
+                actionInstance = result["instance"]["value"]
+                if result["fieldName"]["value"] == "transformUri":
+                    transformUri = result["fieldValue"]["value"]
+                if result["fieldName"]["value"] == "audio":
+                    songName = result["fieldValue"]["value"]
+                    print(songName)
+    
+            # get the transform!
+            print(self.jsap.getQuery("GET_TRANSFORM_CONSTRUCT", {"transform": transformUri}))
+            status, results =  self.kp.query(self.jsap.queryUri, self.jsap.getQuery("GET_TRANSFORM_CONSTRUCT", {"transform": transformUri}))
+            getN3FromBindings(results["results"]["bindings"], self.n3File)
+    
+            # start the analysis
+            logging.debug("ActionHandker::handle() -- performing analysis (workDir: %s)" % self.workDir)
+            subprocess.run(["sonic-annotator", "-t", self.n3File, songName, "-w", "rdf", "--rdf-basedir", self.workDir, "--rdf-force"])        
+            logging.debug("ActionHandker::handle() -- writing results")        
+    
+            # load the results into sepa by creating a new named graph
+            namedGraphUri = self.jsap.namespaces["qmul"] + str(uuid.uuid4())        
+            with open(self.outFile, "r") as f:
+                g = Graph()
+                result = g.parse(f, format="n3")
+                upd = getUpdateFromGraph(result, namedGraphUri)
+                self.kp.update(self.jsap.updateUri, upd)
+                            
+            # write data into SEPA
+            self.kp.update(self.jsap.updateUri, self.jsap.getUpdate("ADD_COMPLETION_TIMESTAMP_WITH_OUTPUT", {
+                "instance": actionInstance,
+                "outputFieldValue": namedGraphUri,
+                "outputFieldName": "output"
+            }))
+    
+            # remove file
+            logging.debug("ActionHandker::handle() -- removing output file")
+            os.remove(self.outFile)
+    
