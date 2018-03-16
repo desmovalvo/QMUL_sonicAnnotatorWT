@@ -23,10 +23,6 @@ Remember to edit its configuration from `annotator.jsap`.
 The WebThing pushes its Thing Description into a running instance of SEPA. The Thing Description states all the properties, events and actions exposed by the Thing.
 Then the WebThing subscribes to all the action requests addressed to it. The handler read all of the data contained in the request, performs the audio analysis and return the results.
 
-## What you should NOT expect right now
-
-This code is currently a draft, mainly oriented at a demonstrating the basic SEPA WoT interaction scheme. So, currently part of the request parameters are hardcoded and will be soon replaced by a dynamic retrieval of their values. We currently interact with vampy, not with sonic annotator that will require a further work.
-
 ## License
 
 This software is released with GNU GPL v3.0. 
