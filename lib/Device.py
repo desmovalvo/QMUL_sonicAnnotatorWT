@@ -98,7 +98,7 @@ class Device:
 
         
     # add new action
-    def addAction(self, actionName, actionURI=None):
+    def addAction(self, actionName, actionURI=None, fields=[]):
 
         """This method is used to put the description of
         an action into the SEPA instance. Mandatory is the
@@ -109,21 +109,43 @@ class Device:
         logging.debug("Debug::addAction() invoked")
 
         # generate an URI and store data
+        self.actions[actionName] = {}
         if not actionURI:
-            self.actions[actionName] = self.getRandomURI()
+            self.actions[actionName]["uri"] = self.getRandomURI()
         else:
-            self.actions[actionName] = actionURI
-        
+            self.actions[actionName]["uri"] = actionURI
+
+        # generate an URI for the data schema
+        dataSchema = self.getRandomURI()
+            
         # generate and perform the update
         u = self.jsap.getUpdate("ADD_NEW_ACTION", {
             "thing": self.thingURI,
-            "action": self.actions[actionName],
+            "action": self.actions[actionName]["uri"],
             "newName": actionName,
-            "newInDataSchema": "-",
+            "newInDataSchema": dataSchema,
             "newOutDataSchema": "-"
         })
         self.kp.update(self.updateURI, u)
+        print(u)
 
+        # add fields to the action
+        self.actions[actionName]["fields"] = fields
+        for f in fields:
+
+            # generate an URI for the field
+            fieldURI = self.getRandomURI()
+            
+            # read field name and type
+            u = self.jsap.getUpdate("ADD_INPUT_FIELD_TO_ACTION", {
+                "thing": self.thingURI,
+                "action": self.actions[actionName]["uri"],
+                "inField": fieldURI,
+                "fieldType": f["fieldType"],
+                "fieldName": f["fieldName"]
+            })
+            self.kp.update(self.updateURI, u)
+            print(u)
 
     # add event
     def addEvent(self, eventName, eventURI=None):
@@ -190,11 +212,26 @@ class Device:
         # delete actions
         logging.debug("Device::deleteWT() -- removing all the actions")
         for a in self.actions:
+
+            # delete fields, then the action
+            for f in self.actions[a]["fields"]:
+                print(f)
+                u = self.jsap.getUpdate("DELETE_INPUT_FIELD_FROM_ACTION", {
+                    "thing": self.thingURI,
+                    "action": self.actions[a]["uri"],
+                    "fieldType": f["fieldType"],
+                    "fieldName": f["fieldName"]
+                })
+                print(u)
+                self.kp.update(self.updateURI, u)
+                
+                
             u = self.jsap.getUpdate("DELETE_ACTION", {
                 "thing": self.thingURI,
-                "action": self.actions[a]
+                "action": self.actions[a]["uri"]
             })
-            self.kp.update(self.updateURI, u)        
+            self.kp.update(self.updateURI, u)
+            
         
         # delete events
         logging.debug("Device::deleteWT() -- removing all the events")
@@ -204,7 +241,7 @@ class Device:
                 "event": self.events[e]
             })
             self.kp.update(self.updateURI, u)
-        
+            
         # delete thing
         logging.debug("Device::deleteWT() -- removing thing")
         u = self.jsap.getUpdate("DELETE_THING", {
